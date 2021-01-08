@@ -1,40 +1,40 @@
-"""Main module"""
 import pandas as pd
 from src.model.model import TitanicClassificationModel
+import argparse
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+import requests
+import config
+
+def args_parse():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', help='setup the path to the folder with "*.csv" files')
+    parser.add_argument('threads', help='setup the number of threads for the script', type=int)
+    args = parser.parse_args()
+    path_to_data = args.path
+    threads_amount = args.threads
+    p = Path(path_to_data)
+    files_to_read = list(p.glob('**/*.csv'))
+    if not files_to_read:
+        raise ValueError('Your path has no csv files. Please choose another path')
+    return files_to_read, threads_amount
+
+def get_coords(address: str): #returns tuple with 2 floats
+    url = 'http://api.positionstack.com/v1/forward'
+    payload = {'access_key': config.GEO_API_CONFIG, "query": address}
+    r = requests.get(url, params=payload)
+    latitude = float(r.json()['data'][0]["latitude"])
+    longitude = float(r.json()['data'][0]["longitude"])
+    return latitude, longitude
+
+def main():
+    print(get_coords("Oblastnaya 1 Kudrovo Saint-Petersburg Russia"))
+    files_to_read, threads_amount = args_parse()
+    with ThreadPoolExecutor(max_workers=threads_amount) as pool:
+        responses = pool.map(print, files_to_read)
+        df = pd.read_csv('path_to_file/path_to_files', header=0)
+        clf = TitanicClassificationModel(df)
+        result_df = clf.predict()
 
 if __name__ == '__main__':
-    '''
-    Run the script with arguments (path to the folder with data, threads number) (hint: argparse, multithreading)
-    '''
-
-    # Pandas documentation: https://pandas.pydata.org/pandas-docs/version/0.15/index.html
-    df = pd.read_csv('path_to_file/path_to_files', header=0)
-
-    '''
-    Check quality of passed dataset:
-        - number of rows
-        - columns (maybe via schema)
-
-    Implement your business logic (filtering and enrich data)
-        - delete rows if "Age" = None AND "Cabin" = None
-        - add column "lat", "lng" using https://opencagedata.com/ by field "Address". If "Address" is empty or API 
-           doesn't return an appropriate result, you should fill these rows by the average value of the column
-        - drop column "Address"
-    '''
-
-    clf = TitanicClassificationModel(df)
-
-    result_df = clf.predict()
-
-    '''
-    Implement you logic of separation data by field "Survived"
-    Print statistic (how many people survived/not survived)
-    '''
-
-    # Result: 2 folders (Survived, NotSurvived)
-
-    '''
-    Format the code 
-    Cover the self-developed code by tests (covering the work with API is not necessary, only up to you)
-    Write the documentation
-    '''
+    main()
