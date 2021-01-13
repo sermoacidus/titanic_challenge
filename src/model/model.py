@@ -1,10 +1,12 @@
 """main module"""
 import os
 import pickle
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+
 from src.model.postprocessing import postprocessing
-from src.model.preprocessing.preprocessing import transform_features, encode_features
+from src.model.preprocessing.preprocessing import encode_features, transform_features
 
 CURRENT_DIRECTORY = os.path.dirname(__file__)
 
@@ -24,8 +26,21 @@ class TitanicClassificationModel:
     @property
     def input_columns(self):
         """Columns required for training"""
-        return {'PassengerId', 'Pclass', 'Name', 'Sex', 'Age', 'SibSp', 'Parch', 'Ticket', 'Fare', 'Cabin',
-                'Embarked', 'lat', 'lng'}
+        return {
+            "PassengerId",
+            "Pclass",
+            "Name",
+            "Sex",
+            "Age",
+            "SibSp",
+            "Parch",
+            "Ticket",
+            "Fare",
+            "Cabin",
+            "Embarked",
+            "lat",
+            "lng",
+        }
 
     def train(self):
         """Train math model"""
@@ -34,31 +49,33 @@ class TitanicClassificationModel:
     @property
     def model(self):
         """Load model"""
-        return self.restored_workspace['model']
+        return self.restored_workspace["model"]
 
     @property
     def encoders(self) -> dict:
         """Load model"""
-        return self.restored_workspace['encoder']
+        return self.restored_workspace["encoder"]
 
     @property
     def restored_workspace(self):
         """Restore workspace from dump"""
-        file_path = os.path.join(CURRENT_DIRECTORY, 'dumps/workspace.dump')
-        return pickle.load(open(file_path, 'rb'))
+        file_path = os.path.join(CURRENT_DIRECTORY, "dumps/workspace.dump")
+        return pickle.load(open(file_path, "rb"))
 
     def __prepare_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Prepare dataframe for classification"""
         if set(df.columns) != self.input_columns:
-            raise BrokenPipeError(f'Passed dataframe contained inappropriate columns. Required: {self.input_columns}; '
-                                  f'passed: {set(df.columns)}')
+            raise BrokenPipeError(
+                f"Passed dataframe contained inappropriate columns. Required: {self.input_columns}; "
+                f"passed: {set(df.columns)}"
+            )
         df = transform_features(df)
         df = encode_features([df], self.encoders)[0]
         return df
 
     def __predict_data(self) -> np.array:
         prepared_df = self.__prepare_data(self.df_pred)
-        return self.model.predict(prepared_df.drop('PassengerId', axis=1))
+        return self.model.predict(prepared_df.drop("PassengerId", axis=1))
 
     def predict(self) -> pd.DataFrame:
         """Predict data"""

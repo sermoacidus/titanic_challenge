@@ -1,1 +1,1 @@
-GEO_API_CONFIG = 'cdba0fc1a3e0be98e83b057d2d61da78'
+GEO_API_CONFIG = "cdba0fc1a3e0be98e83b057d2d61da78"
