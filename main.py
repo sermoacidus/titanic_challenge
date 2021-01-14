@@ -17,7 +17,6 @@ def args_parse(args):
     """
     Used to set the arguments for the app. Run it from console:
     python main.py <path to the folder> [amount of threads to run with]
-    author: Vadim
     """
     parser = argparse.ArgumentParser(
         description="Parser for files' path and threads amount"
@@ -32,17 +31,16 @@ def args_parse(args):
 
 
 def check_columns_and_rows(files):
-    """
-    author: Dmitry
-    """
+
     li = []
-    # for filename in files:   uncomment for several files
-    df = pd.read_csv(
-        files[0], index_col=None, header=0
-    )  # change files[0] to filename for several files
-    li.append(df)  # indent if work with several files
+    for filename in files:  
+        df = pd.read_csv(
+            filename, index_col=None, header=0
+        )  # change files[0] to filename for several files
+        li.append(df)  # indent if work with several files
     df = pd.concat(li, axis=0, ignore_index=True)
     newdf = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
+    newdf = newdf.reset_index(drop=True)
     return newdf
 
 
@@ -61,7 +59,6 @@ def get_coords(address: str) -> Tuple[float, float]:
     """
     Taking address and transform it to coordinates using 'positionstack.com' service.
     Detailed info about terms of usage you can find in readme file.
-    author: Vadim
     """
     url = "http://api.positionstack.com/v1/forward"
     payload = {"access_key": config.GEO_API_CONFIG, "query": address}
@@ -75,9 +72,7 @@ def get_coords(address: str) -> Tuple[float, float]:
 
 
 def check_address(df):
-    """
-    author: Dmitry
-    """
+
     lng = []
     lat = []
     # ad_df = df.head(2)
@@ -98,9 +93,7 @@ def check_address(df):
 
 
 def csv_writer(new_df, arg):
-    """
-    author: Dmitry
-    """
+
     export_data = zip(*arg)
     with open("cords.csv", "w", encoding="ISO-8859-1", newline="") as myfile:
         wr = csv.writer(myfile)
@@ -109,8 +102,9 @@ def csv_writer(new_df, arg):
     myfile.close()
 
     df_2 = pd.read_csv("cords.csv", header=0, low_memory=True)
-    final_df = pd.concat([new_df, df_2], axis=1).drop("Address", axis=1)
-
+    final_df = pd.merge(new_df, df_2, left_index=True, right_index=True)
+    final_df = final_df.drop("Address", axis=1)
+    
     final_df.to_csv("final.csv", index=False)
 
 
@@ -125,11 +119,13 @@ def main():
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
         future = executor.submit(file_processing, files)
         print(future.result())
-    df = pd.read_csv("final.csv", header=0)
-    clf = TitanicClassificationModel(df)
-    result_df = clf.predict()
-    print(result_df)
+    # df = pd.read_csv("final.csv", header=0)
+    # clf = TitanicClassificationModel(df)
+    # result_df = clf.predict()
+    #print(result_df)
 
 
 if __name__ == "__main__":
     main()
+
+# python main.py C:\Users\admin\Desktop\Titanic\titanic_challenge 1
