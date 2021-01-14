@@ -2,6 +2,7 @@ import argparse
 import csv
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
 
@@ -12,7 +13,6 @@ import requests
 import config
 from src.model.model import TitanicClassificationModel
 
-from datetime import datetime
 
 def args_parse(args):
     """
@@ -78,14 +78,14 @@ def check_address(df):
     lat = []
     ad_df = df.head(25)
     address_list = list(ad_df["Address"])
-    #address_list = list(df["Address"])    for all dataset
+    # address_list = list(df["Address"])    for all dataset
     index = df.index
     number_of_rows = len(index)
     for address in address_list:
         latt, long = get_coords(address)
         lng.append(long)
         lat.append(latt)
-        print(f'parsing data ({current_row_for_counter}/{number_of_rows})')
+        print(f"parsing data ({current_row_for_counter}/{number_of_rows})")
         current_row_for_counter += 1
     avg_long = np.mean(np.round(np.array(lng, dtype=np.float64), 2))
     avg_lat = np.mean(np.round(np.array(lat, dtype=np.float64), 2))
@@ -133,4 +133,4 @@ def main():
 if __name__ == "__main__":
     start = datetime.now()
     main()
-    print(f'\n\n Overall time:\n{datetime.now() - start}')
+    print(f"\n\n Overall time:\n{datetime.now() - start}")
