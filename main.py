@@ -12,6 +12,7 @@ import requests
 import config
 from src.model.model import TitanicClassificationModel
 
+from datetime import datetime
 
 def args_parse(args):
     """
@@ -33,11 +34,9 @@ def args_parse(args):
 def check_columns_and_rows(files):
 
     li = []
-    #for filename in files:
-    df = pd.read_csv(
-            files[0], index_col=None, header=0
-        )  # change files[0] to filename for several files
-    li.append(df)  # indent if work with several files
+    for filename in files:
+        df = pd.read_csv(filename, index_col=None, header=0)
+        li.append(df)
     df = pd.concat(li, axis=0, ignore_index=True)
     newdf = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
     newdf = newdf.reset_index(drop=True)
@@ -49,7 +48,6 @@ def collect_and_check_files(path) -> List[Path]:
     Checking if the files are present on the path from your input
     """
     files_to_read = list(Path(path).glob("**/*.csv"))
-    print(files_to_read)
     if not files_to_read:
         raise FileNotFoundError("Your path has no csv files. Please set another path")
     return files_to_read
@@ -68,19 +66,27 @@ def get_coords(address: str) -> Tuple[float, float]:
         longitude = float(r.json()["data"][0]["longitude"])
     except TypeError:
         return 0.0000, 0.0000
+    except IndexError:
+        return 0.0000, 0.0000
     return latitude, longitude
 
 
 def check_address(df):
+    current_row_for_counter = 1
 
     lng = []
     lat = []
-    # ad_df = df.head(2)
-    address_list = list(df["Address"])
+    ad_df = df.head(25)
+    address_list = list(ad_df["Address"])
+    #address_list = list(df["Address"])    for all dataset
+    index = df.index
+    number_of_rows = len(index)
     for address in address_list:
         latt, long = get_coords(address)
         lng.append(long)
         lat.append(latt)
+        print(f'parsing data ({current_row_for_counter}/{number_of_rows})')
+        current_row_for_counter += 1
     avg_long = np.mean(np.round(np.array(lng, dtype=np.float64), 2))
     avg_lat = np.mean(np.round(np.array(lat, dtype=np.float64), 2))
     for ind, coord in enumerate(lat):
@@ -93,7 +99,6 @@ def check_address(df):
 
 
 def csv_writer(new_df, arg):
-
     export_data = zip(*arg)
     with open("cords.csv", "w", encoding="ISO-8859-1", newline="") as myfile:
         wr = csv.writer(myfile)
@@ -118,14 +123,14 @@ def main():
     files = collect_and_check_files(parser.path)
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
         future = executor.submit(file_processing, files)
-        print(future.result())
-    # df = pd.read_csv("final.csv", header=0)
-    # clf = TitanicClassificationModel(df)
-    # result_df = clf.predict()
-    #print(result_df)
+        future.result()
+    df = pd.read_csv("final.csv", header=0)
+    clf = TitanicClassificationModel(df)
+    result_df = clf.predict()
+    print(result_df)
 
 
 if __name__ == "__main__":
+    start = datetime.now()
     main()
-
-# python main.py C:\Users\admin\Desktop\Titanic\titanic_challenge 1
+    print(f'\n\n Overall time:\n{datetime.now() - start}')
