@@ -33,11 +33,11 @@ def args_parse(args):
 def check_columns_and_rows(files):
 
     li = []
-    for filename in files:  
-        df = pd.read_csv(
-            filename, index_col=None, header=0
+    #for filename in files:  
+    df = pd.read_csv(
+            files[0], index_col=None, header=0
         )  # change files[0] to filename for several files
-        li.append(df)  # indent if work with several files
+    li.append(df)  # indent if work with several files
     df = pd.concat(li, axis=0, ignore_index=True)
     newdf = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
     newdf = newdf.reset_index(drop=True)
