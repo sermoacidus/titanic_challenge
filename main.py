@@ -73,16 +73,12 @@ def get_coords(address: str) -> Tuple[float, float]:
 
 def check_address(df):
     current_row_for_counter = 1
-
     lng = []
     lat = []
-    ad_df = df.head(25)
-    address_list = list(ad_df["Address"])
-    # address_list = list(df["Address"])    for all dataset
     index = df.index
     number_of_rows = len(index)
-    for address in address_list:
-        latt, long = get_coords(address)
+    for _, row in df.head(3).iterrows(): #change "head" value to work with larger set or delete "head" to work with all data
+        latt, long = get_coords(row["Address"])
         lng.append(long)
         lat.append(latt)
         print(f"parsing data ({current_row_for_counter}/{number_of_rows})")
@@ -127,10 +123,12 @@ def main():
     df = pd.read_csv("final.csv", header=0)
     clf = TitanicClassificationModel(df)
     result_df = clf.predict()
+    print("***************")
     print(result_df)
 
 
 if __name__ == "__main__":
+    print("***************")
     start = datetime.now()
     main()
     print(f"\n\n Overall time:\n{datetime.now() - start}")
