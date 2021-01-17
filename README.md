@@ -22,6 +22,23 @@ The key has a capacity of 25000 requests in a month, and restricted to 1 request
 To run the script:
 
 1. "cd" to the folder of the project
-2. python main.py -p path to csv.files [addition path ...] -t [amount of threads to run with], for example:
-python main.py -p data/ -t 25
+2. run python main.py -p PATH [addition path ...] -t [amount of threads to run with], for example:
+
+
+    python main.py -p data/ -t 25
+    
+    or
+    
+    python main.py -p data1/ data2/
+    
 3. After successful run you will get two folders (one for survived passengers, the other - for perished), each contains a csv.file with data of passengers based on prediction model.
+
+## Testing
+
+To test the script:
+
+1. "cd" to the folder of the project
+2. run 
+    
+    
+    python -m pytest
