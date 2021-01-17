@@ -1,8 +1,6 @@
 import argparse
-import csv
 import sys
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Set
 
@@ -85,41 +83,41 @@ def check_address(df):
     return [lng, lat]
 
 
-def csv_writer(new_df, arg):
-    export_data = zip(*arg)
-    with open("cords.csv", "w", encoding="ISO-8859-1", newline="") as myfile:
-        wr = csv.writer(myfile)
-        wr.writerow(("lng", "lat"))
-        wr.writerows(export_data)
-    myfile.close()
-
-    df_2 = pd.read_csv("cords.csv", header=0, low_memory=True)
-    final_df = pd.merge(new_df, df_2, left_index=True, right_index=True)
-    final_df = final_df.drop("Address", axis=1)
-
-    final_df.to_csv("final.csv", index=False)
+def file_processing(file):
+    df = check_columns_and_rows(file)
+    new_df = check_address(df)
+    clf = TitanicClassificationModel(new_df)
+    result_df = clf.predict()
+    return result_df
 
 
-def file_processing(files):
-    new_df = check_columns_and_rows(files)
-    csv_writer(new_df, check_address(new_df))
+def separate_by_prediction(df_with_predictions: pd.DataFrame):
+    """
+    Use to create two folders with csv files in it based on model predictions.
+    Folder #1 - Survived, has csv with passengers who has '1' in dataframe's 'predictions' column
+    Folder #2 - NotSurvived, has csv with passengers who has '0' in dataframe's 'predictions' column
+    """
+    survived_df = df_with_predictions[df_with_predictions["predictions"] == 1]
+    not_survived_df = df_with_predictions[df_with_predictions["predictions"] == 0]
+    output_dir = Path("./survived")
+    output_dir.mkdir(exist_ok=True)
+    output_dir = Path("./notsurvived")
+    output_dir.mkdir(exist_ok=True)
+    survived_df.to_csv("survived/survived.csv")
+    not_survived_df.to_csv("notsurvived/notsurvived.csv")
 
 
 def main():
     parser = args_parse(sys.argv[1:])
     files = collect_and_check_files(parser.path)
+    result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
-        future = executor.submit(file_processing, files)
-        future.result()
-    df = pd.read_csv("final.csv", header=0)
-    clf = TitanicClassificationModel(df)
-    result_df = clf.predict()
-    print("***************")
-    print(result_df)
+        futures = [executor.submit(file_processing, file) for file in files]
+        for future in as_completed(futures):
+            result_dfs.append(future.result())
+    df_with_predictions = pd.concat(result_dfs, axis=0, ignore_index=True)
+    separate_by_prediction(df_with_predictions)
 
 
 if __name__ == "__main__":
-    print("***************")
-    start = datetime.now()
     main()
-    print(f"\n\n Overall time:\n{datetime.now() - start}")
