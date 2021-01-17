@@ -4,14 +4,13 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
-from typing import Set, Tuple
+from typing import Set
 
 import numpy as np
 import pandas as pd
-import requests
 
-import config
 from src.model.model import TitanicClassificationModel
+from utilities.get_coords_from_address import get_coords
 
 
 def args_parse(args):
@@ -59,24 +58,6 @@ def collect_and_check_files(list_of_paths) -> Set[Path]:
     if not files_to_read:
         raise FileNotFoundError("Your path has no csv files. Please set another path")
     return files_to_read
-
-
-def get_coords(address: str) -> Tuple[float, float]:
-    """
-    Taking address and transform it to coordinates using 'positionstack.com' service.
-    Detailed info about terms of usage you can find in readme file.
-    """
-    url = "http://api.positionstack.com/v1/forward"
-    payload = {"access_key": config.GEO_API_CONFIG, "query": address}
-    r = requests.get(url, params=payload)
-    try:
-        latitude = float(r.json()["data"][0]["latitude"])
-        longitude = float(r.json()["data"][0]["longitude"])
-    except TypeError:
-        return 0.0000, 0.0000
-    except IndexError:
-        return 0.0000, 0.0000
-    return latitude, longitude
 
 
 def check_address(df):
