@@ -20,10 +20,15 @@ def get_coords(address: str) -> Tuple[float, float]:
         "limit": "1",
     }
     r = requests.get(url, params=payload)
+    if r.status_code == 429:
+        raise ConnectionRefusedError(
+            "The given user account has reached its monthly allowed request volume."
+        )
+    elif r.status_code == 401:
+        raise ConnectionRefusedError("An invalid API access key was supplied.")
     try:
         latitude = float(r.json()["data"][0]["latitude"])
         longitude = float(r.json()["data"][0]["longitude"])
     except (TypeError, IndexError):
-        print(r.json())
         return 0.0, 0.0
     return latitude, longitude
