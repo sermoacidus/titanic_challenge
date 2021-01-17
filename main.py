@@ -4,7 +4,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -17,14 +17,20 @@ from src.model.model import TitanicClassificationModel
 def args_parse(args):
     """
     Used to set the arguments for the app. Run it from console:
-    python main.py <path to the folder> [amount of threads to run with]
+    python main.py -p path to csv.files [addition path ...] -t [amount of threads to run with]
     """
     parser = argparse.ArgumentParser(
         description="Parser for files' path and threads amount"
     )
-    parser.add_argument("path", help='set the path to the folder with "*.csv" files')
     parser.add_argument(
-        "threads",
+        "-p", "--path", nargs="+", help='set the path to the folder with "*.csv" files'
+    )
+    parser.add_argument(
+        "-t",
+        "--threads",
+        nargs="?",
+        const="threads",
+        default=1,
         help="set the number of threads for the script",
         type=int,
     )
@@ -43,11 +49,13 @@ def check_columns_and_rows(files):
     return newdf
 
 
-def collect_and_check_files(path) -> List[Path]:
+def collect_and_check_files(list_of_paths) -> Set[Path]:
     """
-    Checking if the files are present on the path from your input
+    Checking if the files are present on the path from your input and giving collection of files
     """
-    files_to_read = list(Path(path).glob("**/*.csv"))
+    files_to_read = set()
+    for path in list_of_paths:
+        files_to_read.update(set(Path(path).glob("**/*.csv")))
     if not files_to_read:
         raise FileNotFoundError("Your path has no csv files. Please set another path")
     return files_to_read
@@ -77,7 +85,9 @@ def check_address(df):
     lat = []
     index = df.index
     number_of_rows = len(index)
-    for _, row in df.head(3).iterrows(): #change "head" value to work with larger set or delete "head" to work with all data
+    for _, row in df.head(
+        3
+    ).iterrows():  # change "head" value to work with larger set or delete "head" to work with all data
         latt, long = get_coords(row["Address"])
         lng.append(long)
         lat.append(latt)
