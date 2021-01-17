@@ -1,4 +1,6 @@
 venv/
+survived/
+notsurvived/
 .venv/
 .idea/
 *.iml
