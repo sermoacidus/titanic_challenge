@@ -1,37 +1,12 @@
-import argparse
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Set
 
 import numpy as np
 import pandas as pd
 
 from src.model.model import TitanicClassificationModel
-from utilities.get_coords_from_address import get_coords
-
-
-def args_parse(args):
-    """
-    Used to set the arguments for the app. Run it from console:
-    python main.py -p path to csv.files [addition path ...] -t [amount of threads to run with]
-    """
-    parser = argparse.ArgumentParser(
-        description="Parser for files' path and threads amount"
-    )
-    parser.add_argument(
-        "-p", "--path", nargs="+", help='set the path to the folder with "*.csv" files'
-    )
-    parser.add_argument(
-        "-t",
-        "--threads",
-        nargs="?",
-        const="threads",
-        default=1,
-        help="set the number of threads for the script",
-        type=int,
-    )
-    return parser.parse_args(args)
+from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
 
 
 def check_columns_and_rows(files):
@@ -46,18 +21,6 @@ def check_columns_and_rows(files):
     return newdf
 
 
-def collect_and_check_files(list_of_paths) -> Set[Path]:
-    """
-    Checking if the files are present on the path from your input and giving collection of files
-    """
-    files_to_read = set()
-    for path in list_of_paths:
-        files_to_read.update(set(Path(path).glob("**/*.csv")))
-    if not files_to_read:
-        raise FileNotFoundError("Your path has no csv files. Please set another path")
-    return files_to_read
-
-
 def check_address(df):
     current_row_for_counter = 1
     lng = []
@@ -67,7 +30,7 @@ def check_address(df):
     for _, row in df.head(
         3
     ).iterrows():  # change "head" value to work with larger set or delete "head" to work with all data
-        latt, long = get_coords(row["Address"])
+        latt, long = get_coords_from_address.get_coords(row["Address"])
         lng.append(long)
         lat.append(latt)
         print(f"parsing data ({current_row_for_counter}/{number_of_rows})")
@@ -108,8 +71,12 @@ def separate_by_prediction(df_with_predictions: pd.DataFrame):
 
 
 def main():
-    parser = args_parse(sys.argv[1:])
-    files = collect_and_check_files(parser.path)
+    """
+    Distributing files (from user paths) processing between threads (from user input),
+    concatenating results and dividing according to predictions
+    """
+    parser = arg_parsing.args_parse(sys.argv[1:])
+    files = collecting_csv_from_paths.collect_and_check_files(parser.path)
     result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
         futures = [executor.submit(file_processing, file) for file in files]
