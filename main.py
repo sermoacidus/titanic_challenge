@@ -1,3 +1,14 @@
+"""This script is a control file for running the 'Titanic_challenge' predictive model.
+
+How to use it?
+    Make a folder, put there a .csv file with passengers data.
+    Run the script with 'python main.py -p PATH [additional path ...] -t [amount of threads to run with]'
+        -p PATH for path to created folder
+        -t INT if you want to run it concurrently, don't use that flag if you wish to run it with one thread
+    Next the script will parse the folder, read and modify the data,
+    based on passengers origin and other information predict if passenger has survived the tragedy.
+    As a result you will get two folders (Survived,NotSurvived) with .csv data about passengers.
+"""
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -46,7 +57,7 @@ def check_address(df):
     return [lng, lat]
 
 
-def file_processing(file):
+def _file_processing(file):
     df = check_columns_and_rows(file)
     new_df = check_address(df)
     clf = TitanicClassificationModel(new_df)
@@ -55,8 +66,7 @@ def file_processing(file):
 
 
 def separate_by_prediction(df_with_predictions: pd.DataFrame):
-    """
-    Use to create two folders with csv files in it based on model predictions.
+    """Use to create two folders with csv files in it based on model predictions.
     Folder #1 - Survived, has csv with passengers who has '1' in dataframe's 'predictions' column
     Folder #2 - NotSurvived, has csv with passengers who has '0' in dataframe's 'predictions' column
     """
@@ -71,15 +81,14 @@ def separate_by_prediction(df_with_predictions: pd.DataFrame):
 
 
 def main():
-    """
-    Distributing files (from user paths) processing between threads (from user input),
+    """Distributing files (from user paths) processing between threads (from user input),
     concatenating results and dividing according to predictions
     """
     parser = arg_parsing.args_parse(sys.argv[1:])
     files = collecting_csv_from_paths.collect_and_check_files(parser.path)
     result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
-        futures = [executor.submit(file_processing, file) for file in files]
+        futures = [executor.submit(_file_processing, file) for file in files]
         for future in as_completed(futures):
             result_dfs.append(future.result())
     df_with_predictions = pd.concat(result_dfs, axis=0, ignore_index=True)

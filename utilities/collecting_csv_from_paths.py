@@ -1,3 +1,6 @@
+"""Use the module to collect files and return list with files paths.
+Current version is looking for .csv files but you can change it to any extension
+"""
 from pathlib import Path
 from typing import Set
 

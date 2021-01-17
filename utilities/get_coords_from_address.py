@@ -1,3 +1,6 @@
+"""Use the module to parse the address(in string format) to get the tuple with geographical coordinates
+"""
+
 from typing import Tuple
 
 import requests

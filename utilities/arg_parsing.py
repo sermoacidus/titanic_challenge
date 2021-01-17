@@ -1,3 +1,6 @@
+"""Use the module to parse user-input arguments:
+path to files, threads needed to run scripts concurrently
+"""
 import argparse
 
 
