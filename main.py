@@ -9,6 +9,9 @@ from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_ad
 
 
 def check_columns_and_rows(csv_path):
+    """
+    This function filtrate data with zero or NaN meaning in columns Cabin and Age after that delete such passengers.
+    """
     df = pd.read_csv(csv_path, index_col=None, header=0)
     df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
     df_without_empty_val = df_without_empty_val.reset_index(drop=True)
@@ -16,12 +19,23 @@ def check_columns_and_rows(csv_path):
 
 
 def check_address(df):
+    """
+    This function makes 2 columns in final dataframe with longitude and latitude. Also it checks addresses from
+    geo util and find ones with zero meaning than it changes them to average coordinates of dataframe.
+    """
     df["lng"], df["lat"] = "", ""
     for _, row in df.iterrows():
         df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
             str(row["Address"])
         )
     final_df = df.drop("Address", axis=1)
+    mean_lat = df['lat'].mean()
+    mean_lng = df['lng'].mean()
+    for _, row in final_df.iterrows():
+        if final_df.at[_, 'lat'] == 0:
+            final_df.at[_, 'lat'] = mean_lat
+        if final_df.at[_, 'lng'] == 0:
+            final_df.at[_, 'lng'] = mean_lng
     return final_df
 
 
