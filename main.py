@@ -13,48 +13,27 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from src.model.model import TitanicClassificationModel
 from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
 
 
-def check_columns_and_rows(files):
-
-    li = []
-    for filename in files:
-        df = pd.read_csv(filename, index_col=None, header=0)
-        li.append(df)
-    df = pd.concat(li, axis=0, ignore_index=True)
-    newdf = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
-    newdf = newdf.reset_index(drop=True)
-    return newdf
+def check_columns_and_rows(csv_path):
+    df = pd.read_csv(csv_path, index_col=None, header=0)
+    df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
+    df_without_empty_val = df_without_empty_val.reset_index(drop=True)
+    return df_without_empty_val
 
 
 def check_address(df):
-    current_row_for_counter = 1
-    lng = []
-    lat = []
-    index = df.index
-    number_of_rows = len(index)
-    for _, row in df.head(
-        3
-    ).iterrows():  # change "head" value to work with larger set or delete "head" to work with all data
-        latt, long = get_coords_from_address.get_coords(row["Address"])
-        lng.append(long)
-        lat.append(latt)
-        print(f"parsing data ({current_row_for_counter}/{number_of_rows})")
-        current_row_for_counter += 1
-    avg_long = np.mean(np.round(np.array(lng, dtype=np.float64), 2))
-    avg_lat = np.mean(np.round(np.array(lat, dtype=np.float64), 2))
-    for ind, coord in enumerate(lat):
-        if coord == 0:
-            lat[ind] = avg_lat
-    for ind, coord in enumerate(lng):
-        if coord == 0:
-            lng[ind] = avg_long
-    return [lng, lat]
+    df["lng"], df["lat"] = "", ""
+    for _, row in df.iterrows():
+        df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
+            str(row["Address"])
+        )
+    final_df = df.drop("Address", axis=1)
+    return final_df
 
 
 def _file_processing(file):
