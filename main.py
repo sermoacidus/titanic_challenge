@@ -1,131 +1,67 @@
-import argparse
-import csv
 import sys
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Tuple
 
-import numpy as np
 import pandas as pd
-import requests
 
-import config
 from src.model.model import TitanicClassificationModel
+from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
 
 
-def args_parse(args):
-    """
-    Used to set the arguments for the app. Run it from console:
-    python main.py <path to the folder> [amount of threads to run with]
-    """
-    parser = argparse.ArgumentParser(
-        description="Parser for files' path and threads amount"
-    )
-    parser.add_argument("path", help='set the path to the folder with "*.csv" files')
-    parser.add_argument(
-        "threads",
-        help="set the number of threads for the script",
-        type=int,
-    )
-    return parser.parse_args(args)
-
-
-def check_columns_and_rows(files):
-
-    li = []
-    #for filename in files:  
-    df = pd.read_csv(
-            files[0], index_col=None, header=0
-        )  # change files[0] to filename for several files
-    li.append(df)  # indent if work with several files
-    df = pd.concat(li, axis=0, ignore_index=True)
-    newdf = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
-    newdf = newdf.reset_index(drop=True)
-    return newdf
-
-
-def collect_and_check_files(path) -> List[Path]:
-    """
-    Checking if the files are present on the path from your input
-    """
-    files_to_read = list(Path(path).glob("**/*.csv"))
-    print(files_to_read)
-    if not files_to_read:
-        raise FileNotFoundError("Your path has no csv files. Please set another path")
-    return files_to_read
-
-
-def get_coords(address: str) -> Tuple[float, float]:
-    """
-    Taking address and transform it to coordinates using 'positionstack.com' service.
-    Detailed info about terms of usage you can find in readme file.
-    """
-    url = "http://api.positionstack.com/v1/forward"
-    payload = {"access_key": config.GEO_API_CONFIG, "query": address}
-    r = requests.get(url, params=payload)
-    try:
-        latitude = float(r.json()["data"][0]["latitude"])
-        longitude = float(r.json()["data"][0]["longitude"])
-    except TypeError:
-        return 0.0000, 0.0000
-    return latitude, longitude
+def check_columns_and_rows(csv_path):
+    df = pd.read_csv(csv_path, index_col=None, header=0)
+    df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
+    df_without_empty_val = df_without_empty_val.reset_index(drop=True)
+    return df_without_empty_val
 
 
 def check_address(df):
-
-    lng = []
-    lat = []
-    # ad_df = df.head(2)
-    address_list = list(df["Address"])
-    for address in address_list:
-        latt, long = get_coords(address)
-        lng.append(long)
-        lat.append(latt)
-    avg_long = np.mean(np.round(np.array(lng, dtype=np.float64), 2))
-    avg_lat = np.mean(np.round(np.array(lat, dtype=np.float64), 2))
-    for ind, coord in enumerate(lat):
-        if coord == 0:
-            lat[ind] = avg_lat
-    for ind, coord in enumerate(lng):
-        if coord == 0:
-            lng[ind] = avg_long
-    return [lng, lat]
+    df["lng"], df["lat"] = "", ""
+    for _, row in df.iterrows():
+        df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
+            str(row["Address"])
+        )
+    final_df = df.drop("Address", axis=1)
+    return final_df
 
 
-def csv_writer(new_df, arg):
-
-    export_data = zip(*arg)
-    with open("cords.csv", "w", encoding="ISO-8859-1", newline="") as myfile:
-        wr = csv.writer(myfile)
-        wr.writerow(("lng", "lat"))
-        wr.writerows(export_data)
-    myfile.close()
-
-    df_2 = pd.read_csv("cords.csv", header=0, low_memory=True)
-    final_df = pd.merge(new_df, df_2, left_index=True, right_index=True)
-    final_df = final_df.drop("Address", axis=1)
-    
-    final_df.to_csv("final.csv", index=False)
+def _file_processing(file):
+    df = check_columns_and_rows(file)
+    new_df = check_address(df)
+    clf = TitanicClassificationModel(new_df)
+    result_df = clf.predict()
+    return result_df
 
 
-def file_processing(files):
-    new_df = check_columns_and_rows(files)
-    csv_writer(new_df, check_address(new_df))
+def separate_by_prediction(df_with_predictions: pd.DataFrame):
+    """Use to create two folders with csv files in it based on model predictions.
+    Folder #1 - Survived, has csv with passengers who has '1' in dataframe's 'predictions' column
+    Folder #2 - NotSurvived, has csv with passengers who has '0' in dataframe's 'predictions' column
+    """
+    survived_df = df_with_predictions[df_with_predictions["predictions"] == 1]
+    not_survived_df = df_with_predictions[df_with_predictions["predictions"] == 0]
+    output_dir = Path("./survived")
+    output_dir.mkdir(exist_ok=True)
+    output_dir = Path("./notsurvived")
+    output_dir.mkdir(exist_ok=True)
+    survived_df.to_csv("survived/survived.csv")
+    not_survived_df.to_csv("notsurvived/notsurvived.csv")
 
 
 def main():
-    parser = args_parse(sys.argv[1:])
-    files = collect_and_check_files(parser.path)
+    """Distributing files (from user paths) processing between threads (from user input),
+    concatenating results and dividing according to predictions
+    """
+    parser = arg_parsing.args_parse(sys.argv[1:])
+    files = collecting_csv_from_paths.collect_and_check_files(parser.path)
+    result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
-        future = executor.submit(file_processing, files)
-        print(future.result())
-    # df = pd.read_csv("final.csv", header=0)
-    # clf = TitanicClassificationModel(df)
-    # result_df = clf.predict()
-    #print(result_df)
+        futures = [executor.submit(_file_processing, file) for file in files]
+        for future in as_completed(futures):
+            result_dfs.append(future.result())
+    df_with_predictions = pd.concat(result_dfs, axis=0, ignore_index=True)
+    separate_by_prediction(df_with_predictions)
 
 
 if __name__ == "__main__":
     main()
-
-# python main.py C:\Users\admin\Desktop\Titanic\titanic_challenge 1
