@@ -1,5 +1,4 @@
 """This script is a control file for running the 'Titanic_challenge' predictive model.
-
 How to use it?
     Make a folder, put there a .csv file with passengers data.
     Run the script with 'python main.py -p PATH [additional path ...] -t [amount of threads to run with]'
@@ -19,6 +18,7 @@ from src.model.model import TitanicClassificationModel
 from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
 
 
+
 def check_columns_and_rows(csv_path):
     df = pd.read_csv(csv_path, index_col=None, header=0)
     df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
@@ -26,9 +26,11 @@ def check_columns_and_rows(csv_path):
     return df_without_empty_val
 
 
+
 def check_address(df):
     df["lng"], df["lat"] = "", ""
     for _, row in df.iterrows():
+
         df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
             str(row["Address"])
         )
@@ -36,10 +38,12 @@ def check_address(df):
     return final_df
 
 
+
 def _file_processing(file):
-    df = check_columns_and_rows(file)
-    new_df = check_address(df)
-    clf = TitanicClassificationModel(new_df)
+    df = check_rows(file)
+    new_df = fill_coords(df)
+    average_df = average_coords(new_df)
+    clf = TitanicClassificationModel(average_df)
     result_df = clf.predict()
     return result_df
 
