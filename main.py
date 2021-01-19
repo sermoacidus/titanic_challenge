@@ -49,7 +49,7 @@ def average_coords(df):
     """
     mean_lat = df['lat'].mean()
     mean_lng = df['lng'].mean()
-    for _, row in df.iterrows():
+    for _, row in df.apply():
         if df.at[_, 'lat'] == 0:
             df.at[_, 'lat'] = mean_lat
         if df.at[_, 'lng'] == 0:
