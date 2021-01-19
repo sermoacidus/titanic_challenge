@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 """This script is a control file for running the 'Titanic_challenge' predictive model.
-
 How to use it?
     Make a folder, put there a .csv file with passengers data.
     Run the script with 'python main.py -p PATH [additional path ...] -t [amount of threads to run with]'
@@ -11,7 +8,6 @@ How to use it?
     based on passengers origin and other information predict if passenger has survived the tragedy.
     As a result you will get two folders (Survived,NotSurvived) with .csv data about passengers.
 """
->>>>>>> main
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -19,83 +15,20 @@ from pathlib import Path
 import pandas as pd
 
 from src.model.model import TitanicClassificationModel
-<<<<<<< HEAD
 from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
 
 
-def check_rows(csv_path):
-    """
-    This function filtrate data with zero or NaN meaning in columns Cabin and Age,
-    after that delete such passengers.
-=======
-from utilities import arg_parsing, collecting_csv_from_paths
-from utilities.get_coords_from_address import get_coords
-
-
 def check_columns_and_rows(csv_path):
-    """
-    This function filtrate data from csv files, so the output is new dataframe without empty
-    rows of passengers who don't have Cabin number or age in csv file.
->>>>>>> main
-    """
     df = pd.read_csv(csv_path, index_col=None, header=0)
     df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
     df_without_empty_val = df_without_empty_val.reset_index(drop=True)
     return df_without_empty_val
 
 
-<<<<<<< HEAD
-def fill_coords(df):
-    """
-    This function makes 2 columns in final dataframe with longitude and latitude.
-    """
-    df["lng"], df["lat"] = "", ""
-    for _, row in df.apply():
-        df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
-            str(row["Address"])
-        )
-    final_df = df.drop("Address", axis=1)
-    return final_df
-
-
-def average_coords(df):
-    """
-    This func checks addresses from geo util and find ones with zero meaning than it
-    changes them to average coordinates of dataframe.
-    """
-    mean_lat = df['lat'].mean()
-    mean_lng = df['lng'].mean()
-    for _, row in df.iterrows():
-        if df.at[_, 'lat'] == 0:
-            df.at[_, 'lat'] = mean_lat
-        if df.at[_, 'lng'] == 0:
-            df.at[_, 'lng'] = mean_lng
-    return df
-
-
-def _file_processing(file):
-    df = check_rows(file)
-    new_df = fill_coords(df)
-    average_df = average_coords(new_df)
-    clf = TitanicClassificationModel(average_df)
-    result_df = clf.predict()
-    return result_df
-
-
-def separate_by_prediction(df_with_predictions: pd.DataFrame):
-    """Use to create two folders with csv files in it based on model predictions.
-    Folder #1 - Survived, has csv with passengers who has '1' in dataframe's 'predictions' column
-    Folder #2 - NotSurvived, has csv with passengers who has '0' in dataframe's 'predictions' column
-    """
-=======
 def check_address(df):
-    """
-    Write geo coordinates into new columns lat(latitude) and lng(longitude) and also sort the data if it has zero mean,
-    than it assigned average value from all coordinates.
-    """
     df["lng"], df["lat"] = "", ""
     for _, row in df.iterrows():
-        df.at[_, "lat"], df.at[_, "lng"] = get_coords(
+        df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
             str(row["Address"])
         )
     final_df = df.drop("Address", axis=1)
@@ -115,7 +48,6 @@ def separate_by_prediction(df_with_predictions: pd.DataFrame):
     Folder #1 - Survived, has csv with passengers who has '1' in dataframe's 'predictions' column
     Folder #2 - NotSurvived, has csv with passengers who has '0' in dataframe's 'predictions' column
     """
->>>>>>> main
     survived_df = df_with_predictions[df_with_predictions["predictions"] == 1]
     not_survived_df = df_with_predictions[df_with_predictions["predictions"] == 0]
     output_dir = Path("./survived")
