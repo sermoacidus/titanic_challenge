@@ -8,9 +8,10 @@ from src.model.model import TitanicClassificationModel
 from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
 
 
-def check_columns_and_rows(csv_path):
+def check_rows(csv_path):
     """
-    This function filtrate data with zero or NaN meaning in columns Cabin and Age after that delete such passengers.
+    This function filtrate data with zero or NaN meaning in columns Cabin and Age,
+    after that delete such passengers.
     """
     df = pd.read_csv(csv_path, index_col=None, header=0)
     df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
@@ -18,31 +19,39 @@ def check_columns_and_rows(csv_path):
     return df_without_empty_val
 
 
-def check_address(df):
+def fill_coords(df):
     """
-    This function makes 2 columns in final dataframe with longitude and latitude. Also it checks addresses from
-    geo util and find ones with zero meaning than it changes them to average coordinates of dataframe.
+    This function makes 2 columns in final dataframe with longitude and latitude.
     """
     df["lng"], df["lat"] = "", ""
-    for _, row in df.iterrows():
+    for _, row in df.apply():
         df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
             str(row["Address"])
         )
     final_df = df.drop("Address", axis=1)
-    mean_lat = df['lat'].mean()
-    mean_lng = df['lng'].mean()
-    for _, row in final_df.iterrows():
-        if final_df.at[_, 'lat'] == 0:
-            final_df.at[_, 'lat'] = mean_lat
-        if final_df.at[_, 'lng'] == 0:
-            final_df.at[_, 'lng'] = mean_lng
     return final_df
 
 
+def average_coords(df):
+    """
+    This func checks addresses from geo util and find ones with zero meaning than it
+    changes them to average coordinates of dataframe.
+    """
+    mean_lat = df['lat'].mean()
+    mean_lng = df['lng'].mean()
+    for _, row in df.iterrows():
+        if df.at[_, 'lat'] == 0:
+            df.at[_, 'lat'] = mean_lat
+        if df.at[_, 'lng'] == 0:
+            df.at[_, 'lng'] = mean_lng
+    return df
+
+
 def _file_processing(file):
-    df = check_columns_and_rows(file)
-    new_df = check_address(df)
-    clf = TitanicClassificationModel(new_df)
+    df = check_rows(file)
+    new_df = fill_coords(df)
+    average_df = average_coords(new_df)
+    clf = TitanicClassificationModel(average_df)
     result_df = clf.predict()
     return result_df
 
