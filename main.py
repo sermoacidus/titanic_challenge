@@ -18,7 +18,7 @@ from src.model.model import TitanicClassificationModel
 from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
 
 
-def check_rows(csv_path):
+def check_rows(csv_path: Path):
     """
     This function filtrate data with zero or NaN meaning in columns Cabin and Age,
     after that delete such passengers.
@@ -29,12 +29,12 @@ def check_rows(csv_path):
     return df_without_empty_val
 
 
-def fill_coords(df):
+def fill_coords(df: pd.DataFrame) -> pd.DataFrame:
     """
     This function makes 2 columns in final dataframe with longitude and latitude.
     """
     df["lng"], df["lat"] = "", ""
-    for _, row in df.apply():
+    for _, row in df.iterrows():
         df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
             str(row["Address"])
         )
@@ -42,25 +42,33 @@ def fill_coords(df):
     return final_df
 
 
-def average_coords(df):
+def mean_coords(df):
+    """
+    Make average from each column Lat and Lng in dataframe.
+    """
+    mean_lat = round(df['lat'].mean(), 2)
+    mean_lng = round(df['lng'].mean(), 2)
+    return mean_lat, mean_lng
+
+
+def fill_empty_rows(df: pd.DataFrame, mean_lat, mean_lng) -> pd.DataFrame:
     """
     This func checks addresses from geo util and find ones with zero meaning than it
     changes them to average coordinates of dataframe.
     """
-    mean_lat = df['lat'].mean()
-    mean_lng = df['lng'].mean()
-    for _, row in df.apply():
-        if df.at[_, 'lat'] == 0:
+    for _, row in df.iterrows():
+        if df.at[_, 'lat'] is None:
             df.at[_, 'lat'] = mean_lat
-        if df.at[_, 'lng'] == 0:
+        if df.at[_, 'lng'] is None:
             df.at[_, 'lng'] = mean_lng
     return df
 
 
-def _file_processing(file):
+def _file_processing(file) -> pd.DataFrame:
     df = check_rows(file)
     new_df = fill_coords(df)
-    average_df = average_coords(new_df)
+    mean_lat, mean_lng = mean_coords(new_df)
+    average_df = fill_empty_rows(new_df, mean_lat, mean_lng)
     clf = TitanicClassificationModel(average_df)
     result_df = clf.predict()
     return result_df
