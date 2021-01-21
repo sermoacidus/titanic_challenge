@@ -1,0 +1,17 @@
+,PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked,lat,lng
+0,15663,1,"Ismay, Mr. Joseph Bruce",male,49.0,0,0,112058,0.0,B52 B54 B56,S,51.520821,-0.056456
+1,18027,1,"Beattie, Mr. Thomson",male,36.0,0,0,13050,75.2417,C6,C,48.45,-4.28
+2,11678,1,"White, Mrs. John Stuart (Ella Holmes)",female,55.0,0,0,PC 17760,135.6333,C32,C,48.174799,16.374574
+3,11579,1,"Head, Mr. Christopher",male,42.0,0,0,113038,42.5,B11,S,40.790364,-73.773277
+4,5091,1,"Clark, Mrs. Walter Miller (Virginia McDowell)",female,26.0,1,0,13508,136.7792,C89,C,51.500958,-0.198964
+5,19613,1,"Smith, Mrs. Lucien Philip (Mary Eloise Hughes)",female,18.0,1,0,13695,60.0,C31,S,48.858705,2.342865
+6,10167,1,"Evans, Miss. Edith Corse",female,36.0,0,0,PC 17531,31.6792,A29,C,48.210815,16.349598
+7,3728,1,"Widener, Mrs. George Dunton (Eleanor Elkins)",female,50.0,1,1,113503,211.5,C80,C,51.510513,-0.307506
+8,11439,1,"Keeping, Mr. Edwin",male,32.5,0,0,113503,211.5,C132,C,38.628139,-90.192263
+9,6178,1,"Smith, Mr. Lucien Philip",male,24.0,1,0,13695,60.0,C31,S,48.234566,16.416808
+10,8774,1,"Brady, Mr. John Bertram",male,41.0,0,0,113054,30.5,A21,S,57.823618,28.320013
+11,10325,1,"McCaffry, Mr. Thomas Francis",male,46.0,0,0,13050,75.2417,C6,C,51.501136,-0.196631
+12,16822,2,"Cook, Mrs. (Selena Rogers)",female,22.0,0,0,W./C. 14266,10.5,F33,S,48.208498,16.369866
+13,15350,1,"Chaudanson, Miss. Victorine",female,36.0,0,0,PC 17608,262.375,B61,C,51.473195,-0.159157
+14,3544,1,"Mock, Mr. Philipp Edmund",male,30.0,1,0,13236,57.75,C78,C,41.40104,2.1394
+15,14055,1,"Ovies y Rodriguez, Mr. Servando",male,28.5,0,0,PC 17562,27.7208,D43,C,48.858705,2.342865

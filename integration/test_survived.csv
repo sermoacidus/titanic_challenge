@@ -1,0 +1,10 @@
+,PassengerId,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked,lat,lng,Lname,NamePrefix,predictions
+2,11678,1,"White, Mrs. John Stuart (Ella Holmes)",female,Adult,0,0,PC 17760,4_quartile,C,C,48.174799,16.374574,"White,",Mrs.,1
+4,5091,1,"Clark, Mrs. Walter Miller (Virginia McDowell)",female,Young Adult,1,0,13508,4_quartile,C,C,51.500958000000004,-0.198964,"Clark,",Mrs.,1
+5,19613,1,"Smith, Mrs. Lucien Philip (Mary Eloise Hughes)",female,Teenager,1,0,13695,4_quartile,C,S,48.858705,2.342865,"Smith,",Mrs.,1
+6,10167,1,"Evans, Miss. Edith Corse",female,Adult,0,0,PC 17531,4_quartile,A,C,48.210815000000004,16.349598,"Evans,",Miss.,1
+7,3728,1,"Widener, Mrs. George Dunton (Eleanor Elkins)",female,Adult,1,1,113503,4_quartile,C,C,51.510513,-0.307506,"Widener,",Mrs.,1
+10,8774,1,"Brady, Mr. John Bertram",male,Adult,0,0,113054,3_quartile,A,S,57.823618,28.320013,"Brady,",Mr.,1
+12,16822,2,"Cook, Mrs. (Selena Rogers)",female,Student,0,0,W./C. 14266,2_quartile,F,S,48.208498,16.369866000000002,"Cook,",Mrs.,1
+13,15350,1,"Chaudanson, Miss. Victorine",female,Adult,0,0,PC 17608,4_quartile,B,C,51.473195000000004,-0.159157,"Chaudanson,",Miss.,1
+15,14055,1,"Ovies y Rodriguez, Mr. Servando",male,Young Adult,0,0,PC 17562,3_quartile,D,C,48.858705,2.342865,Ovies,y,1

@@ -41,7 +41,7 @@ def collect_and_check_files(list_of_paths) -> Set[Path]:
     return files_to_read
 
 
-def get_coords(address: str) -> Tuple[float, float]:
+def get_coords(address: str) -> Tuple:
     """
     Taking address and transform it to coordinates using 'positionstack.com' service.
     Detailed info about terms of usage you can find in readme file.
@@ -65,5 +65,5 @@ def get_coords(address: str) -> Tuple[float, float]:
         latitude = float(r.json()["data"][0]["latitude"])
         longitude = float(r.json()["data"][0]["longitude"])
     except (TypeError, IndexError):
-        return 0.0, 0.0
+        return None, None
     return latitude, longitude

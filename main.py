@@ -102,5 +102,13 @@ def main():
     separate_by_prediction(df_with_predictions)
 
 
+def sep_results():
+    df_surv = pd.read_csv('survived/survived.csv', index_col=0, header=0)
+    df_nsurv = pd.read_csv('notsurvived/notsurvived.csv', index_col=0, header=0)
+    surv = df_surv['predictions'].count()
+    nsurv = df_nsurv['predictions'].count()
+    print(f"Выжившие {surv}, Невыжившие {nsurv}")
+
 if __name__ == "__main__":
     main()
+    sep_results()
