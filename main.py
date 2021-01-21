@@ -1,12 +1,5 @@
 """This script is a control file for running the 'Titanic_challenge' predictive model.
-How to use it?
-    Make a folder, put there a .csv file with passengers data.
-    Run the script with 'python main.py -p PATH [additional path ...] -t [amount of threads to run with]'
-        -p PATH for path to created folder
-        -t INT if you want to run it concurrently, don't use that flag if you wish to run it with one thread
-    Next the script will parse the folder, read and modify the data,
-    based on passengers origin and other information predict if passenger has survived the tragedy.
-    As a result you will get two folders (Survived,NotSurvived) with .csv data about passengers.
+Information on 'How to?' you can find in README.md
 """
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -15,7 +8,12 @@ from pathlib import Path
 import pandas as pd
 
 from src.model.model import TitanicClassificationModel
-from utilities import args_parse, collect_and_check_files, get_coords
+from utilities import (
+    args_parse,
+    collect_and_check_files,
+    get_coords,
+    separate_by_prediction,
+)
 
 
 def check_rows(csv_path: Path):
@@ -62,29 +60,17 @@ def fill_empty_rows(df: pd.DataFrame, mean_lat, mean_lng) -> pd.DataFrame:
     return df
 
 
-def _file_processing(file) -> pd.DataFrame:
-    df = check_rows(file)
-    new_df = fill_coords(df)
-    mean_lat, mean_lng = mean_coords(new_df)
-    average_df = fill_empty_rows(new_df, mean_lat, mean_lng)
+def file_processing(path: Path) -> pd.DataFrame:
+    """Function processing your csv data, transferring to classification model and
+    then to prediction module.
+    """
+    clean_df = check_rows(path)
+    df_w_coords = fill_coords(clean_df)
+    mean_lat, mean_lng = mean_coords(df_w_coords)
+    average_df = fill_empty_rows(df_w_coords, mean_lat, mean_lng)
     clf = TitanicClassificationModel(average_df)
     result_df = clf.predict()
     return result_df
-
-
-def separate_by_prediction(df_with_predictions: pd.DataFrame):
-    """Use to create two folders with csv files in it based on model predictions.
-    Folder #1 - Survived, has csv with passengers who has '1' in dataframe's 'predictions' column
-    Folder #2 - NotSurvived, has csv with passengers who has '0' in dataframe's 'predictions' column
-    """
-    survived_df = df_with_predictions[df_with_predictions["predictions"] == 1]
-    not_survived_df = df_with_predictions[df_with_predictions["predictions"] == 0]
-    output_dir = Path("./survived")
-    output_dir.mkdir(exist_ok=True)
-    output_dir = Path("./notsurvived")
-    output_dir.mkdir(exist_ok=True)
-    survived_df.to_csv("survived/survived.csv")
-    not_survived_df.to_csv("notsurvived/notsurvived.csv")
 
 
 def main():
@@ -92,10 +78,10 @@ def main():
     concatenating results and dividing according to predictions
     """
     parser = args_parse(sys.argv[1:])
-    files = collect_and_check_files(parser.path)
+    paths_of_files = collect_and_check_files(parser.path)
     result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
-        futures = [executor.submit(_file_processing, file) for file in files]
+        futures = [executor.submit(file_processing, path) for path in paths_of_files]
         for future in as_completed(futures):
             result_dfs.append(future.result())
     df_with_predictions = pd.concat(result_dfs, axis=0, ignore_index=True)

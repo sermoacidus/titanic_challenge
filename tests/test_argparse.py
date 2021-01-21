@@ -1,7 +1,6 @@
 import pytest
 
-from utilities.arg_parsing import args_parse
-from utilities.collecting_csv_from_paths import collect_and_check_files
+from utilities import args_parse, collect_and_check_files
 
 
 def test_if_threads_set_to_default_1():

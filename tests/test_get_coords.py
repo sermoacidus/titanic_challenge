@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, PropertyMock
 import pytest
 import requests
 
-from utilities.get_coords_from_address import get_coords
+from utilities import get_coords
 
 
 def test_the_invalid_API_except_output(monkeypatch):
@@ -46,4 +46,4 @@ def test_failed_output(monkeypatch):
     monkeypatch.setattr(requests, "get", mock)
     requests.get("Moscow Russia").status_code = pock
     monkeypatch.setattr(requests.models.Response, "json", MagicMock(return_value=data))
-    assert get_coords("Moscow Russia") == (0.0, 0.0)
+    assert get_coords("Moscow Russia") == (None, None)
