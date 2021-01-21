@@ -13,6 +13,15 @@ def args_parse(args):
     """Used to set the arguments for the app. Run it from console:
     python main.py -p <path to csv.files> [additional path ...] -t [amount of threads to run with]
     """
+    if "-t" in args:
+        threads_amount = args[args.index("-t") + 1]
+        try:
+            if int(threads_amount) < 1:
+                raise ValueError
+        except (ValueError, TypeError):
+            raise ValueError(
+                "Wrong 'threads' argument, it must be integer and it's value must be more then zero"
+            )
     parser = argparse.ArgumentParser(
         description="Parser for files' path and threads amount"
     )

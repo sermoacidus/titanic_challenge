@@ -16,3 +16,19 @@ def test_raising_exc_if_folder_has_no_csv_or_no_folder():
         "Please set another path",
     ):
         collect_and_check_files(args.path)
+
+
+@pytest.mark.parametrize(
+    ["arg", "value"],
+    [
+        (["-t", -125]),
+        (["-t", None]),
+    ],
+)
+def test_exception_handling_with_wrong_threads_arguments(arg, value):
+    arguments = ["-p", "data/", arg, value]
+    with pytest.raises(
+        ValueError,
+        match="Wrong 'threads' argument, it must be integer and it's value must be more then zero",
+    ):
+        args_parse(arguments)
