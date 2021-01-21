@@ -9,6 +9,50 @@ import pandas as pd
 import requests
 
 
+def check_rows(csv_path: Path):
+    """
+    This function filtrate data with zero or NaN meaning in columns Cabin and Age,
+    after that delete such passengers.
+    """
+    df = pd.read_csv(csv_path, index_col=None, header=0)
+    df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
+    df_without_empty_val = df_without_empty_val.reset_index(drop=True)
+    return df_without_empty_val
+
+
+def fill_coords(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    This function makes 2 columns in final dataframe with longitude and latitude.
+    """
+    df["lng"], df["lat"] = "", ""
+    for _, row in df.iterrows():
+        df.at[_, "lat"], df.at[_, "lng"] = get_coords(str(row["Address"]))
+    final_df = df.drop("Address", axis=1)
+    return final_df
+
+
+def mean_coords(df: pd.DataFrame):
+    """
+    Make average from each column Lat and Lng in dataframe.
+    """
+    mean_lat = round(df["lat"].mean(), 2)
+    mean_lng = round(df["lng"].mean(), 2)
+    return mean_lat, mean_lng
+
+
+def fill_empty_rows(df: pd.DataFrame, mean_lat: float, mean_lng: float) -> pd.DataFrame:
+    """
+    This func checks addresses from geo util and find ones with zero meaning than it
+    changes them to average coordinates of dataframe.
+    """
+    for _, row in df.iterrows():
+        if df.at[_, "lat"] is None:
+            df.at[_, "lat"] = mean_lat
+        if df.at[_, "lng"] is None:
+            df.at[_, "lng"] = mean_lng
+    return df
+
+
 def args_parse(args):
     """Used to set the arguments for the app. Run it from console:
     python main.py -p <path to csv.files> [additional path ...] -t [amount of threads to run with]
