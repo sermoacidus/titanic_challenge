@@ -15,7 +15,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.model.model import TitanicClassificationModel
-from utilities import arg_parsing, collecting_csv_from_paths, get_coords_from_address
+from utilities import args_parse, collect_and_check_files, get_coords
 
 
 def check_rows(csv_path: Path):
@@ -35,9 +35,7 @@ def fill_coords(df: pd.DataFrame) -> pd.DataFrame:
     """
     df["lng"], df["lat"] = "", ""
     for _, row in df.iterrows():
-        df.at[_, "lat"], df.at[_, "lng"] = get_coords_from_address.get_coords(
-            str(row["Address"])
-        )
+        df.at[_, "lat"], df.at[_, "lng"] = get_coords(str(row["Address"]))
     final_df = df.drop("Address", axis=1)
     return final_df
 
@@ -46,8 +44,8 @@ def mean_coords(df: pd.DataFrame):
     """
     Make average from each column Lat and Lng in dataframe.
     """
-    mean_lat = round(df['lat'].mean(), 2)
-    mean_lng = round(df['lng'].mean(), 2)
+    mean_lat = round(df["lat"].mean(), 2)
+    mean_lng = round(df["lng"].mean(), 2)
     return mean_lat, mean_lng
 
 
@@ -57,10 +55,10 @@ def fill_empty_rows(df: pd.DataFrame, mean_lat: float, mean_lng: float) -> pd.Da
     changes them to average coordinates of dataframe.
     """
     for _, row in df.iterrows():
-        if df.at[_, 'lat'] is None:
-            df.at[_, 'lat'] = mean_lat
-        if df.at[_, 'lng'] is None:
-            df.at[_, 'lng'] = mean_lng
+        if df.at[_, "lat"] is None:
+            df.at[_, "lat"] = mean_lat
+        if df.at[_, "lng"] is None:
+            df.at[_, "lng"] = mean_lng
     return df
 
 
@@ -93,8 +91,8 @@ def main():
     """Distributing files (from user paths) processing between threads (from user input),
     concatenating results and dividing according to predictions
     """
-    parser = arg_parsing.args_parse(sys.argv[1:])
-    files = collecting_csv_from_paths.collect_and_check_files(parser.path)
+    parser = args_parse(sys.argv[1:])
+    files = collect_and_check_files(parser.path)
     result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
         futures = [executor.submit(_file_processing, file) for file in files]
