@@ -1,3 +1,5 @@
+"""This module contents miscellaneous functions needed for main.py
+"""
 import argparse
 import json
 from pathlib import Path
@@ -35,12 +37,15 @@ def collect_and_check_files(list_of_paths: List[Path]) -> Set[Path]:
     for path in list_of_paths:
         files_to_read.update(set(Path(path).glob("**/*.csv")))
     if not files_to_read:
-        raise FileNotFoundError("Your path has no csv files. Please set another path")
+        raise FileNotFoundError(
+            "Your path has no csv files. Either wrong path or no files on path."
+            "Please set another path"
+        )
     return files_to_read
 
 
 def get_coords(address: str) -> Tuple:
-    """Taking address and transform it to coordinates using 'positionstack.com' service.
+    """Takes address and transforms it to coordinates using 'positionstack.com' service.
     Detailed info about terms of usage you can find in readme file.
     """
     with open("config.json") as json_file:
@@ -77,5 +82,5 @@ def separate_by_prediction(df_with_predictions: pd.DataFrame):
     output_dir.mkdir(exist_ok=True)
     output_dir = Path("./notsurvived")
     output_dir.mkdir(exist_ok=True)
-    survived_df.to_csv("survived/survived.csv")
-    not_survived_df.to_csv("notsurvived/notsurvived.csv")
+    survived_df.to_csv(Path("survived/survived.csv"))
+    not_survived_df.to_csv(Path("notsurvived/notsurvived.csv"))
