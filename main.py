@@ -42,7 +42,7 @@ def fill_coords(df: pd.DataFrame) -> pd.DataFrame:
     return final_df
 
 
-def mean_coords(df):
+def mean_coords(df: pd.DataFrame):
     """
     Make average from each column Lat and Lng in dataframe.
     """
@@ -51,7 +51,7 @@ def mean_coords(df):
     return mean_lat, mean_lng
 
 
-def fill_empty_rows(df: pd.DataFrame, mean_lat, mean_lng) -> pd.DataFrame:
+def fill_empty_rows(df: pd.DataFrame, mean_lat: float, mean_lng: float) -> pd.DataFrame:
     """
     This func checks addresses from geo util and find ones with zero meaning than it
     changes them to average coordinates of dataframe.
