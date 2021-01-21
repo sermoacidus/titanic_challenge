@@ -11,53 +11,12 @@ from src.model.model import TitanicClassificationModel
 from utilities import (
     args_parse,
     collect_and_check_files,
-    get_coords,
     separate_by_prediction,
+    check_rows,
+    fill_coords,
+    mean_coords,
+    fill_empty_rows
 )
-
-
-def check_rows(csv_path: Path):
-    """
-    This function filtrate data with zero or NaN meaning in columns Cabin and Age,
-    after that delete such passengers.
-    """
-    df = pd.read_csv(csv_path, index_col=None, header=0)
-    df_without_empty_val = df.loc[(df["Cabin"].notnull()) & (df["Age"] > 0)]
-    df_without_empty_val = df_without_empty_val.reset_index(drop=True)
-    return df_without_empty_val
-
-
-def fill_coords(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    This function makes 2 columns in final dataframe with longitude and latitude.
-    """
-    df["lng"], df["lat"] = "", ""
-    for _, row in df.iterrows():
-        df.at[_, "lat"], df.at[_, "lng"] = get_coords(str(row["Address"]))
-    final_df = df.drop("Address", axis=1)
-    return final_df
-
-
-def mean_coords(df: pd.DataFrame):
-    """
-    Make average from each column Lat and Lng in dataframe.
-    """
-    mean_lat = round(df["lat"].mean(), 2)
-    mean_lng = round(df["lng"].mean(), 2)
-    return mean_lat, mean_lng
-
-
-def fill_empty_rows(df: pd.DataFrame, mean_lat: float, mean_lng: float) -> pd.DataFrame:
-    """
-    This func checks addresses from geo util and find ones with zero meaning than it
-    changes them to average coordinates of dataframe.
-    """
-    for _, row in df.iterrows():
-        if df.at[_, "lat"] is None:
-            df.at[_, "lat"] = mean_lat
-        if df.at[_, "lng"] is None:
-            df.at[_, "lng"] = mean_lng
-    return df
 
 
 def file_processing(path: Path) -> pd.DataFrame:
@@ -89,11 +48,14 @@ def main():
 
 
 def sep_results():
-    df_surv = pd.read_csv('survived/survived.csv', index_col=0, header=0)
-    df_nsurv = pd.read_csv('notsurvived/notsurvived.csv', index_col=0, header=0)
-    surv = df_surv['predictions'].count()
-    nsurv = df_nsurv['predictions'].count()
-    print(f"Выжившие {surv}, Невыжившие {nsurv}")
+    """Return final predictions of survived and not survived people.
+    """
+    df_survive = pd.read_csv('survived/survived.csv', index_col=0, header=0)
+    df_nsurvive = pd.read_csv('notsurvived/notsurvived.csv', index_col=0, header=0)
+    survive = df_survive['predictions'].count()
+    nsurvive = df_nsurvive['predictions'].count()
+    print(f"Выжившие {survive}, Невыжившие {nsurvive}")
+
 
 if __name__ == "__main__":
     main()

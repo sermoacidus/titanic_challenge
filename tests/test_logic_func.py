@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import csv
 
-from main import check_rows, fill_coords, mean_coords, fill_empty_rows
+from main import check_rows, mean_coords, fill_empty_rows
 
 
 def test_existing_file_csv():
@@ -57,24 +57,20 @@ def test_csv():
 
 def test_fill_empty_rows(test_csv):
 
-    df = pd.read_csv(test_csv, index_col=None)
-
+    # df = pd.read_csv(test_csv, index_col=None)
+    df = pd.DataFrame({'lat': [None], 'lng': [None]})
     new_df = fill_empty_rows(df, 1, 1)
 
-    df_lng = new_df["lng"]
-    df_lat = new_df["lat"]
+    df_lng = df["lng"]
+    df_lat = df["lat"]
 
     for i in df_lng:
-        if i is not None:
-            assert True
-        else:
-            print("No data in row")
+        if i is None:
+            raise ValueError("Row is empty")
 
     for j in df_lat:
-        if j is not None:
-            assert True
-        else:
-            print("No data in row")
+        if j is None:
+            raise ValueError("Row is empty")
 
 
 def test_average(test_csv):

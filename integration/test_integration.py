@@ -1,18 +1,25 @@
-import csv
-import os.path
-import sys
+
+from unittest.mock import MagicMock, PropertyMock
 
 import pandas as pd
 from pathlib import Path
+import requests
+from typing import Tuple
 
 import pytest
-import glob
-import argparse
-from unittest import mock
 
-from main import check_rows, fill_coords, mean_coords, fill_empty_rows, separate_by_prediction
 from src.model.model import TitanicClassificationModel
-from utilities import args_parse, collect_and_check_files, get_coords
+from utilities import get_coords, check_rows, mean_coords, fill_empty_rows, separate_by_prediction
+
+
+def test_output(monkeypatch):
+    mock = MagicMock(return_value=requests.models.Response)
+    pock = PropertyMock(return_value=200)
+    data = {"data": [{"latitude": 40.68295, "longitude": -73.9708}]}
+    monkeypatch.setattr(requests, "get", mock)
+    requests.get("Moscow Russia").status_code = pock
+    monkeypatch.setattr(requests.models.Response, "json", MagicMock(return_value=data))
+    assert get_coords("Moscow Russia") == (40.68295, -73.9708)
 
 
 def test_filtrating_data():
@@ -27,6 +34,7 @@ def test_file_process():
     clf = TitanicClassificationModel(average_df)
     result_df = clf.predict()
     sep_res = separate_by_prediction(result_df)
+    assert type(result_df) == pd.DataFrame
 
 
 def test_output_exist():
@@ -36,14 +44,14 @@ def test_output_exist():
 
 def test_comparison_final_res():
     with open('test_survived.csv', 'r') as t1, open('../integration/survived/survived.csv', 'r') as t2:
-        fileone = t1.readlines()
-        filetwo = t2.readlines()
+        file_1 = t1.readlines()
+        file_2 = t2.readlines()
 
-        for line in filetwo:
-            if line not in fileone:
-                print("Bad")
+        for line in file_2:
+            if line not in file_1:
+                assert False
             else:
-                print("All good")
+                assert True
 
 
 if __name__ == "__main__":
