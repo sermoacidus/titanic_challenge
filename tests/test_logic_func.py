@@ -1,13 +1,13 @@
+import glob
 import os.path
 
 import pytest
-import glob
 
-from main import fill_coords, check_rows, mean_coords
+from main import check_rows, fill_coords, mean_coords
 
 
 def test_existing_file_csv():
-    pattern = os.path.join("../data", '*.csv')
+    pattern = os.path.join("../data", "*.csv")
     csv_files = glob.glob(pattern)
     if len(csv_files):
         print("File exist")
@@ -17,7 +17,7 @@ def test_existing_file_csv():
 
 @pytest.fixture()
 def checked_first_df():
-    pattern = os.path.join("../data", '*.csv')
+    pattern = os.path.join("../data", "*.csv")
     csv_files = glob.glob(pattern)[0]  # delete [0] to test all csv files
     df_rows = check_rows(csv_files)
     return df_rows
@@ -41,8 +41,8 @@ def test_check_rows(checked_first_df):
 def test_fill_cords(checked_first_df):
     df = fill_coords(checked_first_df)
     print(df)
-    df_lng = df['lng']
-    df_lat = df['lat']
+    df_lng = df["lng"]
+    df_lat = df["lat"]
 
     num_lng = []
     for i in df_lng:
@@ -65,14 +65,9 @@ def test_average(checked_first_df):
     mean_lat, mean_lng = mean_coords(checked_first_df)
     print(mean_lat, mean_lng)
 
-    avg_lat = round(df['lat'].mean(), 2)
-    avg_lng = round(df['lng'].mean(), 2)
+    avg_lat = round(df["lat"].mean(), 2)
+    avg_lng = round(df["lng"].mean(), 2)
     print(avg_lat, avg_lng)
 
     assert mean_lat == avg_lat
     assert mean_lng == avg_lng
-
-
-
-
-
