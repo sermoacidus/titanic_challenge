@@ -9,7 +9,7 @@ import pandas as pd
 import requests
 
 
-def check_rows(csv_path: Path):
+def check_rows(csv_path: Path) -> pd.DataFrame:
     """
     This function filtrate data with zero or NaN meaning in columns Cabin and Age,
     after that delete such passengers.
@@ -31,7 +31,7 @@ def fill_coords(df: pd.DataFrame) -> pd.DataFrame:
     return final_df
 
 
-def mean_coords(df: pd.DataFrame):
+def mean_coords(df: pd.DataFrame) -> Tuple[float, float]:
     """
     Make average from each column Lat and Lng in dataframe.
     """
