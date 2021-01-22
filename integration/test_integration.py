@@ -1,15 +1,17 @@
-
+from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
 import pandas as pd
-from pathlib import Path
 import requests
-from typing import Tuple
-
-import pytest
 
 from src.model.model import TitanicClassificationModel
-from utilities import get_coords, check_rows, mean_coords, fill_empty_rows, separate_by_prediction
+from utilities import (
+    check_rows,
+    fill_empty_rows,
+    get_coords,
+    mean_coords,
+    separate_by_prediction,
+)
 
 
 def test_output(monkeypatch):
@@ -23,27 +25,32 @@ def test_output(monkeypatch):
 
 
 def test_filtrating_data():
-    first_action = check_rows('test_1.csv')
+    first_action = check_rows("test_1.csv")
     assert type(first_action) == pd.DataFrame
 
 
 def test_file_process():
-    second_df = pd.read_csv('test_2_with_coords.csv', index_col=0, header=0)
+    second_df = pd.read_csv("test_2_with_coords.csv", index_col=0, header=0)
     mean_lat, mean_lng = mean_coords(second_df)
     average_df = fill_empty_rows(second_df, mean_lat, mean_lng)
     clf = TitanicClassificationModel(average_df)
     result_df = clf.predict()
     sep_res = separate_by_prediction(result_df)
-    assert type(result_df) == pd.DataFrame
+    return sep_res
 
 
 def test_output_exist():
-    if Path('integration/survived/survived.csv').is_dir() and Path('integration/notsurvived/notsurvived.csv').is_dir():
+    if (
+        Path("integration/survived/survived.csv").is_dir()
+        and Path("integration/notsurvived/notsurvived.csv").is_dir()
+    ):
         assert Path is True
 
 
 def test_comparison_final_res():
-    with open('test_survived.csv', 'r') as t1, open('../integration/survived/survived.csv', 'r') as t2:
+    with open("test_survived.csv", "r") as t1, open(
+        "../integration/survived/survived.csv", "r"
+    ) as t2:
         file_1 = t1.readlines()
         file_2 = t2.readlines()
 
@@ -57,4 +64,3 @@ def test_comparison_final_res():
 if __name__ == "__main__":
     # test_file_process()
     test_comparison_final_res()
-

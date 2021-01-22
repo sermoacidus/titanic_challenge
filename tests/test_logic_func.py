@@ -1,11 +1,11 @@
+import csv
 import glob
 import os.path
 
 import pandas as pd
 import pytest
-import csv
 
-from main import check_rows, mean_coords, fill_empty_rows
+from main import check_rows, fill_empty_rows, mean_coords
 
 
 def test_existing_file_csv():
@@ -46,8 +46,8 @@ def test_csv():
     list2 = [2.56, None, 7.48, 2.4, None]
     d = [list1, list2]
     export_data = zip(*d)
-    file = 'test_data.csv'
-    with open(file, 'w', encoding="ISO-8859-1", newline='') as f:
+    file = "test_data.csv"
+    with open(file, "w", encoding="ISO-8859-1", newline="") as f:
         wr = csv.writer(f)
         wr.writerow(("lat", "lng"))
         wr.writerows(export_data)
@@ -57,12 +57,11 @@ def test_csv():
 
 def test_fill_empty_rows(test_csv):
 
-    # df = pd.read_csv(test_csv, index_col=None)
-    df = pd.DataFrame({'lat': [None], 'lng': [None]})
+    df = pd.read_csv(test_csv, index_col=None)
     new_df = fill_empty_rows(df, 1, 1)
 
-    df_lng = df["lng"]
-    df_lat = df["lat"]
+    df_lng = new_df["lng"]
+    df_lat = new_df["lat"]
 
     for i in df_lng:
         if i is None:
