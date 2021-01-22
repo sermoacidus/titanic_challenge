@@ -2,6 +2,9 @@
 """
 import argparse
 import json
+import logging
+import sys
+import threading
 from pathlib import Path
 from typing import List, Set, Tuple
 
@@ -57,12 +60,16 @@ def args_parse(args):
     """Used to set the arguments for the app. Run it from console:
     python main.py -p <path to csv.files> [additional path ...] -t [amount of threads to run with]
     """
+    logging.debug(
+        f"Checking arguments. All arguments - {sys.argv}, in function - {args}"
+    )
     if "-t" in args:
         threads_amount = args[args.index("-t") + 1]
         try:
             if int(threads_amount) < 1:
                 raise ValueError
         except (ValueError, TypeError):
+            logging.critical("Wrong thread argument, invoking exception")
             raise ValueError(
                 "Wrong 'threads' argument, it must be integer and it's value must be more then zero"
             )
@@ -77,23 +84,27 @@ def args_parse(args):
         "--threads",
         nargs="?",
         const="threads",
-        default=1,
+        default=None,
         help="set the number of threads for the script",
         type=int,
     )
+    logging.info("Successful parsing of arguments")
     return parser.parse_args(args)
 
 
 def collect_and_check_files(list_of_paths: List[Path]) -> Set[Path]:
     """Checking if the files are present on the path from your input and giving collection of files"""
+    logging.info("Looking for suitable files")
     files_to_read = set()
     for path in list_of_paths:
         files_to_read.update(set(Path(path).glob("**/*.csv")))
     if not files_to_read:
+        logging.critical("Wrong input path")
         raise FileNotFoundError(
             "Your path has no csv files. Either wrong path or no files on path."
             "Please set another path"
         )
+    logging.info("Files collected.")
     return files_to_read
 
 
@@ -101,6 +112,10 @@ def get_coords(address: str) -> Tuple:
     """Takes address and transforms it to coordinates using 'positionstack.com' service.
     Detailed info about terms of usage you can find in readme file.
     """
+    logging.debug(
+        f"Starting fetching coordinates in thread - {threading.current_thread().name},"
+        f" sending address {address}"
+    )
     with open("config.json") as json_file:
         key = json.load(json_file)["API_KEY"]
     url = "http://api.positionstack.com/v1/forward"
@@ -111,16 +126,27 @@ def get_coords(address: str) -> Tuple:
     }
     r = requests.get(url, params=payload)
     if r.status_code == 429:
+        logging.warning(
+            f"API exception. Status code - {r.status_code}, API response - {r.json()}"
+        )
         raise ConnectionRefusedError(
             "The given user account has reached its monthly allowed request volume."
         )
     elif r.status_code == 401:
+        logging.warning(
+            f"API exception. Status code - {r.status_code}, API response - {r.json()}"
+        )
         raise ConnectionRefusedError("An invalid API access key was supplied.")
     try:
         latitude = float(r.json()["data"][0]["latitude"])
         longitude = float(r.json()["data"][0]["longitude"])
-    except (TypeError, IndexError):
+    except (TypeError, IndexError, KeyError) as e:
+        logging.warning(
+            f"Address {address} is not found by API, returning None,"
+            f" the answer of API is {r.json()}, the exception is {type(e), e}"
+        )
         return None, None
+    logging.debug(f"Address {address} is successfully found, returning coordinates")
     return latitude, longitude
 
 
@@ -129,6 +155,7 @@ def separate_by_prediction(df_with_predictions: pd.DataFrame):
     Folder #1 - Survived, has csv with passengers who has '1' in dataframe's 'predictions' column
     Folder #2 - NotSurvived, has csv with passengers who has '0' in dataframe's 'predictions' column
     """
+    logging.info("Separating by result in prediction started")
     survived_df = df_with_predictions[df_with_predictions["predictions"] == 1]
     not_survived_df = df_with_predictions[df_with_predictions["predictions"] == 0]
     output_dir = Path("./survived")

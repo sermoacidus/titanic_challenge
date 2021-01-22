@@ -1,6 +1,7 @@
 """This script is a control file for running the 'Titanic_challenge' predictive model.
 Information on 'How to?' you can find in README.md
 """
+import logging
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -10,12 +11,12 @@ import pandas as pd
 from src.model.model import TitanicClassificationModel
 from utilities import (
     args_parse,
-    collect_and_check_files,
-    separate_by_prediction,
     check_rows,
+    collect_and_check_files,
     fill_coords,
+    fill_empty_rows,
     mean_coords,
-    fill_empty_rows
+    separate_by_prediction,
 )
 
 
@@ -36,24 +37,32 @@ def main():
     """Distributing files (from user paths) processing between threads (from user input),
     concatenating results and dividing according to predictions
     """
+    logging.basicConfig(
+        filename="titanic.log",
+        format="%(asctime)s %(levelname)s:%(message)s",
+        level=logging.DEBUG,
+    )
+    logging.info("Starting...")
     parser = args_parse(sys.argv[1:])
     paths_of_files = collect_and_check_files(parser.path)
     result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
         futures = [executor.submit(file_processing, path) for path in paths_of_files]
         for future in as_completed(futures):
+            logging.info(f"Future {future} is completed, saving result")
             result_dfs.append(future.result())
     df_with_predictions = pd.concat(result_dfs, axis=0, ignore_index=True)
+    logging.info("Concatenation of dataframes with predictions successfully finished")
     separate_by_prediction(df_with_predictions)
+    logging.info("Main function finished")
 
 
 def sep_results():
-    """Return final predictions of survived and not survived people.
-    """
-    df_survive = pd.read_csv('survived/survived.csv', index_col=0, header=0)
-    df_nsurvive = pd.read_csv('notsurvived/notsurvived.csv', index_col=0, header=0)
-    survive = df_survive['predictions'].count()
-    nsurvive = df_nsurvive['predictions'].count()
+    """Return final predictions of survived and not survived people."""
+    df_survive = pd.read_csv("survived/survived.csv", index_col=0, header=0)
+    df_nsurvive = pd.read_csv("notsurvived/notsurvived.csv", index_col=0, header=0)
+    survive = df_survive["predictions"].count()
+    nsurvive = df_nsurvive["predictions"].count()
     print(f"Выжившие {survive}, Невыжившие {nsurvive}")
 
 
