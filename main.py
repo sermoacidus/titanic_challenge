@@ -1,6 +1,7 @@
 """This script is a control file for running the 'Titanic_challenge' predictive model.
 Information on 'How to?' you can find in README.md
 """
+import logging
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -37,15 +38,24 @@ def main():
     """Distributing files (from user paths) processing between threads (from user input),
     concatenating results and dividing according to predictions
     """
+    logging.basicConfig(
+        filename="titanic.log",
+        format="%(asctime)s %(levelname)s:%(message)s",
+        level=logging.DEBUG,
+    )
+    logging.info("Starting...")
     parser = args_parse(sys.argv[1:])
     paths_of_files = collect_and_check_files(parser.path)
     result_dfs = []
     with ThreadPoolExecutor(max_workers=parser.threads) as executor:
         futures = [executor.submit(file_processing, path) for path in paths_of_files]
         for future in as_completed(futures):
+            logging.info(f"Future {future} is completed, saving result")
             result_dfs.append(future.result())
     df_with_predictions = pd.concat(result_dfs, axis=0, ignore_index=True)
+    logging.info("Concatenation of dataframes with predictions successfully finished")
     separate_by_prediction(df_with_predictions)
+    logging.info("Main function finished")
 
 
 if __name__ == "__main__":
