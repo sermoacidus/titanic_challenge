@@ -2,7 +2,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
 import pandas as pd
-import pytest
 import requests
 
 from src.model.model import TitanicClassificationModel
@@ -37,7 +36,7 @@ def test_file_process():
     clf = TitanicClassificationModel(average_df)
     result_df = clf.predict()
     sep_res = separate_by_prediction(result_df)
-    assert type(result_df) == pd.DataFrame
+    return sep_res
 
 
 def test_output_exist():
