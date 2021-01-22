@@ -5,3 +5,4 @@ notsurvived/
 .idea/
 *.iml
 *.pyc
+*.log

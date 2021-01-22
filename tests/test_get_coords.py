@@ -9,6 +9,7 @@ from utilities import get_coords
 def test_the_invalid_API_except_output(monkeypatch):
     mock = MagicMock(return_value=requests.models.Response)
     pock = PropertyMock(return_value=401)
+    monkeypatch.setattr(requests.models.Response, "json", MagicMock(return_value=""))
     monkeypatch.setattr(requests, "get", mock)
     requests.get("smth.com").status_code = pock
     with pytest.raises(
@@ -20,6 +21,7 @@ def test_the_invalid_API_except_output(monkeypatch):
 def test_the_reached_limit_except_output(monkeypatch):
     mock = MagicMock(return_value=requests.models.Response)
     pock = PropertyMock(return_value=429)
+    monkeypatch.setattr(requests.models.Response, "json", MagicMock(return_value=""))
     monkeypatch.setattr(requests, "get", mock)
     requests.get("smth.com").status_code = pock
     with pytest.raises(
