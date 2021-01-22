@@ -41,3 +41,9 @@ To test the script:
     
     
     python -m pytest
+   
+2. Run integration test
+
+    cd integration folder
+    
+    run test_imtegration.py
