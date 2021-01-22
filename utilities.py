@@ -137,3 +137,12 @@ def separate_by_prediction(df_with_predictions: pd.DataFrame):
     output_dir.mkdir(exist_ok=True)
     survived_df.to_csv(Path("survived/survived.csv"))
     not_survived_df.to_csv(Path("notsurvived/notsurvived.csv"))
+
+
+def sep_results():
+    """Return final predictions of survived and not survived people."""
+    df_survive = pd.read_csv("survived/survived.csv", index_col=0, header=0)
+    df_nsurvive = pd.read_csv("notsurvived/notsurvived.csv", index_col=0, header=0)
+    survive = df_survive["predictions"].count()
+    nsurvive = df_nsurvive["predictions"].count()
+    print(f"Survived {survive}, Not survived {nsurvive}")

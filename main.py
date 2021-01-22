@@ -15,6 +15,7 @@ from utilities import (
     fill_coords,
     fill_empty_rows,
     mean_coords,
+    sep_results,
     separate_by_prediction,
 )
 
@@ -45,15 +46,6 @@ def main():
             result_dfs.append(future.result())
     df_with_predictions = pd.concat(result_dfs, axis=0, ignore_index=True)
     separate_by_prediction(df_with_predictions)
-
-
-def sep_results():
-    """Return final predictions of survived and not survived people."""
-    df_survive = pd.read_csv("survived/survived.csv", index_col=0, header=0)
-    df_nsurvive = pd.read_csv("notsurvived/notsurvived.csv", index_col=0, header=0)
-    survive = df_survive["predictions"].count()
-    nsurvive = df_nsurvive["predictions"].count()
-    print(f"Выжившие {survive}, Невыжившие {nsurvive}")
 
 
 if __name__ == "__main__":
