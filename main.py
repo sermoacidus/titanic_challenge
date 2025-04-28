@@ -33,6 +33,8 @@ def file_processing(path: Path) -> pd.DataFrame:
     result_df = clf.predict()
     return result_df
 
+def smth:
+    pass
 
 def main():
     """Distributing files (from user paths) processing between threads (from user input),
